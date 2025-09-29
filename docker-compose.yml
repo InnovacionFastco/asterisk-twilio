@@ -1,0 +1,41 @@
+services:
+  asterisk:
+    build:
+      context: .
+    image: "${ASTERISK_IMAGE_NAME:-asterisk-twilio:latest}"
+    container_name: "${ASTERISK_CONTAINER_NAME:-asterisk-twilio}"
+    restart: unless-stopped
+    environment:
+      PUBLIC_ADDRESS: "${PUBLIC_ADDRESS:-changeme}"          # Public IP/FQDN Twilio will reach
+      SIP_PORT_UDP: "${SIP_PORT_UDP:-5060}"
+      SIP_PORT_TCP: "${SIP_PORT_TCP:-5060}"
+      SIP_PORT_TLS: "${SIP_PORT_TLS:-5061}"
+      TWILIO_SIP_DOMAIN: "${TWILIO_SIP_DOMAIN:-sip.us1.twilio.com}"
+      TWILIO_SIP_USER: "${TWILIO_SIP_USER:-changeme}"        # Twilio SIP Credential username
+      TWILIO_SIP_PASSWORD: "${TWILIO_SIP_PASSWORD:-changeme}"# Twilio SIP Credential password
+      TWILIO_DID: "${TWILIO_DID:-+10000000000}"              # Número DID principal en formato E.164
+      HTTP_BIND_ADDRESS: "${HTTP_BIND_ADDRESS:-0.0.0.0}"      # Dirección donde expondrá el servidor HTTP interno
+      HTTP_PORT: "${HTTP_PORT:-8088}"                        # Puerto para ARI/HTTP
+      HTTP_PREFIX: "${HTTP_PREFIX:-}"                        # Prefijo opcional para las rutas HTTP
+      ARI_ALLOWED_ORIGINS: "${ARI_ALLOWED_ORIGINS:-*}"       # CORS para ARI
+      ARI_USERNAME: "${ARI_USERNAME:-changeme}"              # Usuario del API REST de Asterisk
+      ARI_PASSWORD: "${ARI_PASSWORD:-changeme}"              # Contraseña del usuario ARI
+    ports:
+      - "${SIP_PORT_UDP:-5060}:5060/udp"                     # SIP UDP signalling
+      - "${SIP_PORT_TCP:-5060}:5060"                         # SIP TCP signalling
+      - "${SIP_PORT_TLS:-5061}:5061"                         # SIP TLS signalling
+      - "${RTP_PORT_RANGE:-10000-10100}:10000-10100/udp"     # RTP media ports (100 ports)
+      - "${HTTP_PORT:-8088}:8088"                           # ARI/HTTP API
+    volumes:
+      - asterisk-spool:/var/spool/asterisk
+      - asterisk-lib:/var/lib/asterisk
+      - asterisk-logs:/var/log/asterisk
+      - asterisk-recordings:/var/spool/asterisk/monitor
+      # Uncomment the next line to live-edit configuration files without rebuilding the image
+      # - ./config/asterisk:/etc/asterisk
+
+volumes:
+  asterisk-spool:
+  asterisk-lib:
+  asterisk-logs:
+  asterisk-recordings:

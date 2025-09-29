@@ -1,0 +1,27 @@
+# Environment files with real credentials
+.env
+
+# Docker build cache
+.dockerignore
+
+# VS Code settings
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Temporary files
+*~
+*.tmp
+*.temp
+
+# Asterisk runtime files that shouldn't be versioned
+config/asterisk/keys/*.key
+config/asterisk/keys/*.crt

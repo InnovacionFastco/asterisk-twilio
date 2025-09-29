@@ -44,6 +44,8 @@ Los archivos `.conf` contienen comentarios con las decisiones de diseño y los v
       - Usa el dominio SIP regional que Twilio te proporcione (`sip.us1.twilio.com`, `sip.eu1.twilio.com`, etc.).
       - Declara el número entrante principal en formato E.164 en `TWILIO_DID` (por ejemplo `+56226665897`); el bootstrap lo inyectará en el dialplan para enrutar las llamadas.
       - Ajusta `HTTP_BIND_ADDRESS` / `HTTP_PORT` si quieres exponer el API REST en puertos diferentes y define `ARI_USERNAME` / `ARI_PASSWORD` con credenciales propias. `ARI_ALLOWED_ORIGINS` controla los orígenes permitidos para llamadas CORS.
+   - Define las credenciales del softphone local (`MICROSIP_EXTENSION`, `MICROSIP_PASSWORD`, `MICROSIP_DISPLAY_NAME`). El contenedor generará automáticamente el endpoint PJSIP con esos valores (la contraseña por defecto es `6001pass`, pensada para evitar confusiones en la primera conexión).
+   - Ajusta `MICROSIP_MATCH` si quieres restringir qué IPs pueden registrar el softphone. Por defecto usa `0.0.0.0/0` para aceptar registros desde cualquier host, pero puedes definir una red (ej. `192.168.1.0/24`) o una IP concreta.
    3. (Opcional) Ajusta `config/asterisk/extensions.conf` y el resto de ficheros para adaptar el dialplan a tus necesidades.
 
 > 💡 Para evitar exponer credenciales en control de versiones, mantén los valores reales fuera del repositorio y aplícalos justo antes de construir la imagen o usa un repositorio privado.
@@ -84,7 +86,23 @@ El proceso de compilación copiará los archivos de `config/asterisk` dentro de 
    channel originate Local/+14155238886@from-internal application Echo
    ```
    - Si todo está correcto escucharás el mensaje estándar de Twilio y después un eco.
-3. Para probar inbound, crea una *Voice URL* en Twilio que enrute una llamada entrante al trunk. Por defecto el contexto `from-twilio` reproducirá `demo-congrats`.
+3. Para probar inbound, crea una *Voice URL* en Twilio que enrute una llamada entrante al trunk. Por defecto el contexto `from-twilio` hará sonar `microsip` y, si no responde, reproducirá `demo-congrats`.
+
+## 🖥️ Conectar MicroSIP (softphone)
+
+1. Arranca el contenedor (`docker compose up -d`). El bootstrap creará automáticamente un endpoint PJSIP llamado `microsip` con la extensión configurada en `.env` (por defecto `6001`).
+2. Abre MicroSIP y añade una nueva cuenta SIP con los siguientes campos:
+   - **Account**: `MICROSIP_EXTENSION` (ej. `6001`)
+   - **Domain**: IP o hostname del host donde corre Docker (si MicroSIP está en el mismo PC podemos usar `127.0.0.1`; asegúrate de que dicha IP esté incluida en `MICROSIP_MATCH`).
+   - **User / Login**: `MICROSIP_EXTENSION`
+   - **Password**: `MICROSIP_PASSWORD`
+   - **Display name**: `MICROSIP_DISPLAY_NAME`
+   - **Proxy** *(opcional)*: `sip:<host>:5060;transport=udp`.
+3. Guarda la cuenta; MicroSIP debería registrar y mostrar el estado *Online*.
+4. Desde MicroSIP puedes:
+   - Marcar `1000` para escuchar el audio de prueba de Twilio a través del trunk.
+   - Marcar cualquier número E.164 (ej. `+14155238886`) y Asterisk lo enviará vía Twilio.
+5. Las llamadas entrantes desde Twilio a `TWILIO_DID` timbrarán primero en `microsip`. Si no hay respuesta, el flujo vuelve al mensaje `demo-congrats`.
 
 ## 🔐 Certificados TLS (opcional)
 

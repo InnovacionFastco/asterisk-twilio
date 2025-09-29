@@ -38,6 +38,10 @@ render_placeholders() {
   replace_placeholder "$wizard" "__PUBLIC_ADDRESS__" "$PUBLIC_ADDRESS"
   replace_placeholder "$wizard" "__SIP_PORT_UDP__" "$SIP_PORT_UDP"
   replace_placeholder "$wizard" "__TWILIO_DID__" "$TWILIO_DID"
+  replace_placeholder "$wizard" "__MICROSIP_EXTENSION__" "$MICROSIP_EXTENSION"
+  replace_placeholder "$wizard" "__MICROSIP_PASSWORD__" "$MICROSIP_PASSWORD"
+  replace_placeholder "$wizard" "__MICROSIP_DISPLAY_NAME__" "$MICROSIP_DISPLAY_NAME"
+  replace_placeholder "$wizard" "__MICROSIP_MATCH__" "$MICROSIP_MATCH"
   replace_placeholder "$extensions" "__TWILIO_DID__" "$TWILIO_DID"
 
   replace_placeholder "$transports" "__PUBLIC_ADDRESS__" "$PUBLIC_ADDRESS"
@@ -54,6 +58,11 @@ render_placeholders() {
 
   if grep -R "__TWILIO" "$wizard" >/dev/null 2>&1; then
     log 'Some Twilio placeholders were not replaced in pjsip_wizard.conf.'
+    exit 1
+  fi
+
+  if grep -R "__MICROSIP" "$wizard" >/dev/null 2>&1; then
+    log 'MicroSIP placeholders were not replaced in pjsip_wizard.conf.'
     exit 1
   fi
 
@@ -81,6 +90,11 @@ validate_env() {
   : "${TWILIO_DID:?Set TWILIO_DID to the E.164 number Twilio will deliver (e.g. +1234567890).}"
   : "${ARI_USERNAME:?Set ARI_USERNAME to the user that will authenticate against ARI.}"
   : "${ARI_PASSWORD:?Set ARI_PASSWORD to the password for the ARI user.}"
+
+  export MICROSIP_EXTENSION="${MICROSIP_EXTENSION:-6001}"
+  export MICROSIP_PASSWORD="${MICROSIP_PASSWORD:-6001pass}"
+  export MICROSIP_DISPLAY_NAME="${MICROSIP_DISPLAY_NAME:-Agente ${MICROSIP_EXTENSION}}"
+  export MICROSIP_MATCH="${MICROSIP_MATCH:-0.0.0.0/0}"
 
   if [[ "$TWILIO_SIP_USER" == "changeme" ]]; then
     log 'TWILIO_SIP_USER is still set to the placeholder value.'

@@ -20,6 +20,10 @@ services:
       ARI_ALLOWED_ORIGINS: "${ARI_ALLOWED_ORIGINS:-*}"       # CORS para ARI
       ARI_USERNAME: "${ARI_USERNAME:-changeme}"              # Usuario del API REST de Asterisk
       ARI_PASSWORD: "${ARI_PASSWORD:-changeme}"              # Contraseña del usuario ARI
+      MICROSIP_EXTENSION: "${MICROSIP_EXTENSION:-6001}"      # Extensión para el softphone MicroSIP
+      MICROSIP_PASSWORD: "${MICROSIP_PASSWORD:-6001pass}"    # Contraseña del softphone MicroSIP
+      MICROSIP_DISPLAY_NAME: "${MICROSIP_DISPLAY_NAME:-Agente 6001}" # Nombre mostrado en MicroSIP
+      MICROSIP_MATCH: "${MICROSIP_MATCH:-0.0.0.0/0}"         # Red/IP permitida para registrar MicroSIP
     ports:
       - "${SIP_PORT_UDP:-5060}:5060/udp"                     # SIP UDP signalling
       - "${SIP_PORT_TCP:-5060}:5060"                         # SIP TCP signalling

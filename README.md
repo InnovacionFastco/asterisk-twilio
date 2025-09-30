@@ -5,6 +5,7 @@ Este proyecto empaqueta una instancia de Asterisk optimizada para integrarse con
 ## 🧱 Componentes principales
 
 - **Imagen base**: [`andrius/asterisk:22.5.2_debian-trixie`](https://hub.docker.com/r/andrius/asterisk) con PJSIP, WebRTC y módulos modernos habilitados.
+- **Módulos extra**: durante la compilación se genera `res_pjsip_sdp_rtp.so` para garantizar que las ofertas SDP incluyan `m=audio` y codecs G.711 compatibles con Twilio.
 - **Configuración de Asterisk**: enfocada en PJSIP; usa el *wizard* para describir el trunk de Twilio e incluye un dialplan mínimo inbound/outbound.
 - **Persistencia**: volúmenes nombrados para `spool`, `lib`, `logs` y `monitor`.
 - **Personalización**: variables `.env` para puertos y nombre de la imagen; ficheros de configuración comentados para credenciales y parámetros de Twilio.
@@ -75,6 +76,8 @@ docker compose up -d
 # Ingresa al CLI de Asterisk si necesitas depurar
 docker compose exec asterisk asterisk -rvvv
 ```
+
+> ⏱️ **Nota:** el primer `docker compose build` descarga el código fuente de Asterisk 22.5.2 dentro de una etapa temporal para compilar el módulo `res_pjsip_sdp_rtp.so`. El proceso tarda unos minutos y requiere acceso a Internet, pero deja el runtime igual de ligero que antes.
 
 El proceso de compilación copiará los archivos de `config/asterisk` dentro de la imagen. Si deseas iterar sin reconstruir, descomenta la línea de montaje bind en `docker-compose.yml`.
 

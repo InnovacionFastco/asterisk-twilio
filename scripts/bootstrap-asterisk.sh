@@ -43,6 +43,7 @@ render_placeholders() {
   replace_placeholder "$wizard" "__MICROSIP_DISPLAY_NAME__" "$MICROSIP_DISPLAY_NAME"
   replace_placeholder "$wizard" "__MICROSIP_MATCH__" "$MICROSIP_MATCH"
   replace_placeholder "$extensions" "__TWILIO_DID__" "$TWILIO_DID"
+  replace_placeholder "$extensions" "__TWILIO_SIP_DOMAIN__" "$TWILIO_SIP_DOMAIN"
 
   replace_placeholder "$transports" "__PUBLIC_ADDRESS__" "$PUBLIC_ADDRESS"
   replace_placeholder "$transports" "__SIP_PORT_UDP__" "$SIP_PORT_UDP"

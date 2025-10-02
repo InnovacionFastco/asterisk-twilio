@@ -6,24 +6,29 @@ services:
     container_name: "${ASTERISK_CONTAINER_NAME:-asterisk-twilio}"
     restart: unless-stopped
     environment:
-      PUBLIC_ADDRESS: "${PUBLIC_ADDRESS:-changeme}"          # Public IP/FQDN Twilio will reach
+      PUBLIC_ADDRESS: "${PUBLIC_ADDRESS:-changeme}"           # Public IP/FQDN Twilio will reach
       SIP_PORT_UDP: "${SIP_PORT_UDP:-5060}"
       SIP_PORT_TCP: "${SIP_PORT_TCP:-5060}"
       SIP_PORT_TLS: "${SIP_PORT_TLS:-5061}"
       TWILIO_SIP_DOMAIN: "${TWILIO_SIP_DOMAIN:-sip.us1.twilio.com}"
-      TWILIO_SIP_USER: "${TWILIO_SIP_USER:-changeme}"        # Twilio SIP Credential username
-      TWILIO_SIP_PASSWORD: "${TWILIO_SIP_PASSWORD:-changeme}"# Twilio SIP Credential password
-      TWILIO_DID: "${TWILIO_DID:-+10000000000}"              # Número DID principal en formato E.164
+      TWILIO_SIP_USER: "${TWILIO_SIP_USER:-changeme}"         # Twilio SIP Credential username
+      TWILIO_SIP_PASSWORD: "${TWILIO_SIP_PASSWORD:-changeme}" # Twilio SIP Credential password
+      TWILIO_SIP_USER_FILE: "${TWILIO_SIP_USER_FILE:-}"       # Ruta opcional a archivo con el usuario Twilio
+      TWILIO_SIP_PASSWORD_FILE: "${TWILIO_SIP_PASSWORD_FILE:-}" # Ruta opcional a archivo con la contraseña Twilio
+      TWILIO_DID: "${TWILIO_DID:-+10000000000}"               # Número DID principal en formato E.164
       HTTP_BIND_ADDRESS: "${HTTP_BIND_ADDRESS:-0.0.0.0}"      # Dirección donde expondrá el servidor HTTP interno
-      HTTP_PORT: "${HTTP_PORT:-8088}"                        # Puerto para ARI/HTTP
-      HTTP_PREFIX: "${HTTP_PREFIX:-}"                        # Prefijo opcional para las rutas HTTP
-      ARI_ALLOWED_ORIGINS: "${ARI_ALLOWED_ORIGINS:-*}"       # CORS para ARI
-      ARI_USERNAME: "${ARI_USERNAME:-changeme}"              # Usuario del API REST de Asterisk
-      ARI_PASSWORD: "${ARI_PASSWORD:-changeme}"              # Contraseña del usuario ARI
-      MICROSIP_EXTENSION: "${MICROSIP_EXTENSION:-6001}"      # Extensión para el softphone MicroSIP
-      MICROSIP_PASSWORD: "${MICROSIP_PASSWORD:-6001pass}"    # Contraseña del softphone MicroSIP
+      HTTP_PORT: "${HTTP_PORT:-8088}"                         # Puerto para ARI/HTTP
+      HTTP_PREFIX: "${HTTP_PREFIX:-}"                         # Prefijo opcional para las rutas HTTP
+      ARI_ALLOWED_ORIGINS: "${ARI_ALLOWED_ORIGINS:-*}"        # CORS para ARI
+      ARI_USERNAME: "${ARI_USERNAME:-changeme}"               # Usuario del API REST de Asterisk
+      ARI_PASSWORD: "${ARI_PASSWORD:-changeme}"               # Contraseña del usuario ARI
+      ARI_USERNAME_FILE: "${ARI_USERNAME_FILE:-}"             # Ruta opcional a archivo con el usuario ARI
+      ARI_PASSWORD_FILE: "${ARI_PASSWORD_FILE:-}"             # Ruta opcional a archivo con la contraseña ARI
+      MICROSIP_EXTENSION: "${MICROSIP_EXTENSION:-6001}"       # Extensión para el softphone MicroSIP
+      MICROSIP_PASSWORD: "${MICROSIP_PASSWORD:-6001pass}"     # Contraseña del softphone MicroSIP
+      MICROSIP_PASSWORD_FILE: "${MICROSIP_PASSWORD_FILE:-}"   # Ruta opcional a archivo con la contraseña del softphone
       MICROSIP_DISPLAY_NAME: "${MICROSIP_DISPLAY_NAME:-Agente 6001}" # Nombre mostrado en MicroSIP
-      MICROSIP_MATCH: "${MICROSIP_MATCH:-0.0.0.0/0}"         # Red/IP permitida para registrar MicroSIP
+      MICROSIP_MATCH: "${MICROSIP_MATCH:-0.0.0.0/0}"          # Red/IP permitida para registrar MicroSIP
     ports:
       - "${SIP_PORT_UDP:-5060}:5060/udp"                     # SIP UDP signalling
       - "${SIP_PORT_TCP:-5060}:5060"                         # SIP TCP signalling

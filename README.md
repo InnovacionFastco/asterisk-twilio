@@ -42,11 +42,12 @@ Los archivos `.conf` contienen comentarios con las decisiones de diseño y los v
    ```
    2. **Edita `.env`** para definir tu IP/FQDN pública (`PUBLIC_ADDRESS`), puertos SIP y credenciales de Twilio.
       - El script `bootstrap-asterisk.sh` sustituirá automáticamente los marcadores `__FOO__` en los `.conf`. Si alguno queda con `changeme`, el contenedor abortará durante el arranque.
-      - Usa el dominio SIP regional que Twilio te proporcione (`sip.us1.twilio.com`, `sip.eu1.twilio.com`, etc.).
+   - Usa el dominio de terminación que Twilio te entregue (formato `<tu_troncal>.pstn.twilio.com`).
       - Declara el número entrante principal en formato E.164 en `TWILIO_DID` (por ejemplo `+56226665897`); el bootstrap lo inyectará en el dialplan para enrutar las llamadas.
       - Ajusta `HTTP_BIND_ADDRESS` / `HTTP_PORT` si quieres exponer el API REST en puertos diferentes y define `ARI_USERNAME` / `ARI_PASSWORD` con credenciales propias. `ARI_ALLOWED_ORIGINS` controla los orígenes permitidos para llamadas CORS.
    - Define las credenciales del softphone local (`MICROSIP_EXTENSION`, `MICROSIP_PASSWORD`, `MICROSIP_DISPLAY_NAME`). El contenedor generará automáticamente el endpoint PJSIP con esos valores (la contraseña por defecto es `6001pass`, pensada para evitar confusiones en la primera conexión).
    - Ajusta `MICROSIP_MATCH` si quieres restringir qué IPs pueden registrar el softphone. Por defecto usa `0.0.0.0/0` para aceptar registros desde cualquier host, pero puedes definir una red (ej. `192.168.1.0/24`) o una IP concreta.
+   - 💡 **Gestión de secretos**: cualquier variable crítica admite una variante con sufijo `_FILE` (`TWILIO_SIP_PASSWORD_FILE`, `TWILIO_SIP_USER_FILE`, `ARI_PASSWORD_FILE`, `ARI_USERNAME_FILE`, `MICROSIP_PASSWORD_FILE`). Señala el path a un archivo legible dentro del contenedor (por ejemplo usando `docker compose --env-file` o montando un secreto) y el bootstrap leerá el contenido, recortará saltos de línea y exportará la variable original.
    3. (Opcional) Ajusta `config/asterisk/extensions.conf` y el resto de ficheros para adaptar el dialplan a tus necesidades.
 
 > 💡 Para evitar exponer credenciales en control de versiones, mantén los valores reales fuera del repositorio y aplícalos justo antes de construir la imagen o usa un repositorio privado.
@@ -90,6 +91,32 @@ El proceso de compilación copiará los archivos de `config/asterisk` dentro de 
    ```
    - Si todo está correcto escucharás el mensaje estándar de Twilio y después un eco.
 3. Para probar inbound, crea una *Voice URL* en Twilio que enrute una llamada entrante al trunk. Por defecto el contexto `from-twilio` hará sonar `microsip` y, si no responde, reproducirá `demo-congrats`.
+
+## 🤖 Pruebas automáticas con SIPp
+
+El directorio `tests/sipp/` contiene una imagen ligera de [SIPp](https://github.com/SIPp/sipp) y escenarios listos para validar el flujo SIP contra Asterisk.
+
+1. **Construye la imagen de pruebas**:
+   ```powershell
+   docker build -t asterisk-sipp-tests tests/sipp
+   ```
+2. **Ejecuta el escenario `register-and-call-8888`** (registra un endpoint y origina una llamada hacia la aplicación demo 8888):
+   ```powershell
+   docker run --rm \
+     --network asterisk-twilio_default \
+     -e SIPP_USERNAME=$env:MICROSIP_EXTENSION \
+     -e SIPP_PASSWORD=$env:MICROSIP_PASSWORD \
+     asterisk-sipp-tests \
+     $env:PUBLIC_ADDRESS \
+     -sf /opt/sipp/scenarios/register-and-call-8888.xml \
+     -s 8888 \
+     -au $env:MICROSIP_EXTENSION \
+     -ap $env:MICROSIP_PASSWORD \
+     -m 1
+   ```
+   Ajusta `--network` si usas un nombre distinto para la red de Docker Compose y, en entornos CI, define las variables necesarias (`PUBLIC_ADDRESS`, `MICROSIP_EXTENSION`, `MICROSIP_PASSWORD`). El escenario espera encontrar al servidor Asterisk escuchando en UDP 5060.
+
+Puedes añadir escenarios adicionales dentro de `tests/sipp/scenarios/` y reutilizar la misma imagen para construir una batería de pruebas de regresión.
 
 ## 🖥️ Conectar MicroSIP (softphone)
 

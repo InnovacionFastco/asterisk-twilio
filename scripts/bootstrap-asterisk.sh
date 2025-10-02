@@ -5,6 +5,34 @@ log() {
   printf '[bootstrap] %s\n' "$*"
 }
 
+load_secret_files() {
+  local file_var base_var file_path
+  local candidates=(
+    TWILIO_SIP_PASSWORD_FILE
+    TWILIO_SIP_USER_FILE
+    ARI_PASSWORD_FILE
+    ARI_USERNAME_FILE
+    MICROSIP_PASSWORD_FILE
+  )
+
+  for file_var in "${candidates[@]}"; do
+    file_path="${!file_var:-}"
+    [[ -z "$file_path" ]] && continue
+
+    if [[ ! -r "$file_path" ]]; then
+      log "Secret file '$file_path' declared in $file_var is not readable."
+      exit 1
+    fi
+
+    base_var="${file_var%_FILE}"
+    local value
+    value="$(<"$file_path")"
+    value="${value%%$'\r'}"
+    value="${value%%$'\n'}"
+    export "$base_var"="$value"
+  done
+}
+
 copy_templates() {
   local src="/opt/asterisk/templates"
   local dest="/etc/asterisk"
@@ -136,6 +164,7 @@ validate_env() {
 }
 
 main() {
+  load_secret_files
   validate_env
   copy_templates
   render_placeholders
